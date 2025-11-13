@@ -120,7 +120,12 @@
         // 全域變數和設定
         const MODEL_NAME = "gemini-2.5-flash-preview-09-2025";
         const API_BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent`;
-        const API_KEY = ""; // 保持為空字串，Canvas 會自動提供
+
+        // 🚨🚨🚨 請將 YOUR_GEMINI_API_KEY_HERE 替換為您的實際 API 密鑰 🚨🚨🚨
+        // 您可以從 Google AI Studio 取得密鑰。
+        const API_KEY = "AIzaSyDS5Fm4iir0wiPcSuRK5WP24HlaQKAZrn0"; 
+        // 🚨🚨🚨 確保密鑰已正確填入，否則會出現 403 錯誤 🚨🚨🚨
+        
         const MAX_RETRIES = 5;
 
         // UI 元素
@@ -158,6 +163,21 @@
                 messageContainer.innerHTML = '';
             }, 8000);
         }
+        
+        /**
+         * 檢查 API Key 是否已填寫
+         */
+        function checkApiKey() {
+            if (API_KEY === "YOUR_GEMINI_API_KEY_HERE" || API_KEY.trim() === "") {
+                displayMessage("🚨 **API 密鑰遺失！** 請在程式碼中填入您的 Gemini API 密鑰以啟用此應用程式。", 'error');
+                generateButton.disabled = true;
+                analyzeButton.disabled = true;
+                return false;
+            }
+            return true;
+        }
+
+        window.onload = checkApiKey; // 網頁載入時檢查密鑰
 
         /**
          * 啟用/禁用 UI 元素並顯示載入狀態
@@ -183,8 +203,11 @@
                     analyzeButtonText.textContent = '中文解析';
                     analysisIcon.classList.remove('animate-spin');
                     analysisIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />`;
-                    // 恢復生成按鈕，同時保持分析按鈕在有內容時啟用
-                    generateButton.disabled = false;
+                    
+                    // 恢復按鈕狀態
+                    if (checkApiKey()) {
+                         generateButton.disabled = false;
+                    }
                     if (essayOutput.innerText.trim().length > 0) {
                         analyzeButton.disabled = false;
                     }
@@ -248,6 +271,8 @@
          * 處理作文生成流程
          */
         async function generateEssay() {
+            if (!checkApiKey()) return;
+            
             const topic = topicInput.value.trim();
             const wordCount = parseInt(countInput.value, 10);
             const tone = toneSelect.value;
@@ -353,6 +378,8 @@
          * 處理中文解析生成流程
          */
         async function generateChineseAnalysis() {
+            if (!checkApiKey()) return;
+            
             const essayText = essayOutput.innerText.trim();
             
             if (essayText.length < 50 || essayText.includes("輸入主題並點擊")) {
